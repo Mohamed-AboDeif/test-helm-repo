@@ -1,0 +1,45 @@
+apiVersion: v1
+entries:
+  service:
+  - apiVersion: v2
+    appVersion: 1.18.7
+    created: "2026-07-09T16:18:22.269483838+03:00"
+    description: A generic Helm chart for deploying iVoiceUp microservices on Kubernetes
+    digest: 38f910cbecd7ccb076d0abdd084b8aa43cf514360d91cbaf0baa6de490661b4b
+    home: https://github.com/iVoiceUp/ivoiceup-app-chart
+    keywords:
+    - ivoiceup
+    - microservice
+    - kubernetes
+    maintainers:
+    - name: iVoiceUp
+    name: service
+    sources:
+    - https://github.com/iVoiceUp/ivoiceup-app-chart
+    type: application
+    urls:
+    - https://ivoiceup.github.io/ivoiceup-app-chart/service-1.18.7.tgz
+    version: 1.18.7
+  sockudo:
+  - apiVersion: v2
+    appVersion: 3.2.1
+    created: "2026-07-09T16:18:22.27159822+03:00"
+    description: A simple, fast, and secure WebSocket server implementing the Pusher
+      protocol
+    digest: 424c1f912d40d694c867b5f7cd0873896132be285d26acfba8b6ac57f723b8eb
+    home: https://github.com/sockudo/sockudo
+    keywords:
+    - websocket
+    - pusher
+    - realtime
+    - rust
+    maintainers:
+    - name: sockudo
+    name: sockudo
+    sources:
+    - https://github.com/sockudo/sockudo
+    type: application
+    urls:
+    - https://ivoiceup.github.io/ivoiceup-app-chart/sockudo-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-07-09T16:18:22.267474252+03:00"

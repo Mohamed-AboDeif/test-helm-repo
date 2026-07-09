@@ -1,0 +1,54 @@
+{{- $root := .}}
+{{- $chart_name := .Chart.Name }}
+{{- $chart_version := .Chart.Version | replace "+" "_" }}
+{{- $cron_name := .Values.fullnameOverride }}
+{{- $jobs_run_settings := .Values.jobs_run_settings }}
+{{- $job := .Values.jobs }}
+{{- range $job := .Values.jobs }}
+---
+{{- if $.Values.cronjob.create -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ $cron_name }}-{{ $job.name }}"
+  labels:
+    chart: "{{ $chart_name }}-{{ $chart_version }}"
+spec:
+  concurrencyPolicy: {{ $jobs_run_settings.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ $jobs_run_settings.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ $cron_name }}
+            cron: {{ $job.name }}
+        spec:
+          {{- if $.Values.cronimage.imagePullSecrets }}
+          imagePullSecrets:
+          {{- toYaml $.Values.cronimage.imagePullSecrets | nindent 12 }}
+          {{- end }}
+          containers:
+          - image: "{{ $.Values.cronimage.repository }}:{{ $.Values.cronimage.tag }}"
+            imagePullPolicy: {{ $.Values.cronimage.imagePullPolicy }}
+            name: {{ $job.name }}
+            {{- if $.Values.environment }}
+            env:
+            {{- toYaml $.Values.environment | nindent 12 }}
+            {{- end }}
+            {{- if $.Values.envFrom }}
+            envFrom:
+            {{- toYaml $.Values.envFrom | nindent 12 }}
+            {{- end }}
+            command:
+              {{- toYaml $job.command | nindent 12 }}
+            resources:
+              requests:
+                memory: "1Gi"
+              limits:
+                memory: "1Gi"
+          restartPolicy: {{ $jobs_run_settings.restartPolicy }}
+  schedule: {{ $job.schedule | quote }}
+  successfulJobsHistoryLimit: {{ $jobs_run_settings.successfulJobsHistoryLimit }}
+{{- end }}
+{{- end -}}

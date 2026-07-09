@@ -1,0 +1,15 @@
+apiVersion: v2
+name: service
+description: A generic Helm chart for deploying iVoiceUp microservices on Kubernetes
+type: application
+version: 1.18.7
+appVersion: "1.18.7"
+home: https://github.com/iVoiceUp/ivoiceup-app-chart
+sources:
+  - https://github.com/iVoiceUp/ivoiceup-app-chart
+keywords:
+  - ivoiceup
+  - microservice
+  - kubernetes
+maintainers:
+  - name: iVoiceUp

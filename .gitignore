@@ -1,0 +1,2 @@
+# Helm chart packages — managed by chart-releaser on gh-pages branch only
+*.tgz

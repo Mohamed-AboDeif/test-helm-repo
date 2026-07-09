@@ -1,0 +1,17 @@
+# chart-releaser configuration
+# https://github.com/helm/chart-releaser
+
+# GitHub owner (org or user)
+owner: iVoiceUp
+
+# GitHub repository name
+git-repo: ivoiceup-app-chart
+
+# Branch to push the index.yaml to (GitHub Pages source)
+git-base-url: https://api.github.com/
+
+# Pages branch
+pages-branch: gh-pages
+
+# Skip existing releases (don't fail if tag already exists)
+skip-existing: true

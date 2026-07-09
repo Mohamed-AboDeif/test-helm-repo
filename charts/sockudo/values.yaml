@@ -1,0 +1,383 @@
+#* registfy
+replicaCount: 2
+
+image:
+  repository: sockudo/sockudo
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+
+# -- Sockudo server configuration
+config:
+  # -- Server mode: "production" or "development"
+  mode: production
+  # -- Enable debug logging
+  debug: false
+  # -- Log output format: "human" or "json"
+  logOutputFormat: json
+  # -- Rust log level
+  rustLog: "info,sockudo=info"
+  # -- Graceful shutdown period in seconds
+  #* registfy
+  shutdownGracePeriod: 30
+
+  # -- Adapter driver: local, redis, redis-cluster, nats
+  #* registfy
+  adapterDriver: redis
+  # -- App manager driver: memory, mysql, postgres, dynamodb, surrealdb, scylladb
+  #* registfy
+  appManagerDriver: postgres
+  # -- Cache driver: memory, redis, redis-cluster, none
+  #* registfy
+  cacheDriver: redis
+  # -- Queue driver: memory, redis, redis-cluster, sqs, sns, none
+  #* registfy
+  queueDriver: redis
+  # -- Rate limiter driver: memory, redis, redis-cluster
+  #* registfy
+  rateLimiterDriver: redis
+
+  # -- WebSocket settings
+  websocket:
+    maxPayloadKb: 64
+    maxMessages: 1000
+    maxBytes: 1048576
+    pingInterval: 30
+    idleTimeout: 120
+    compression: disabled
+
+  # -- HTTP API settings
+  httpApi:
+    usageEnabled: true
+
+  # -- Rate limiter settings
+  rateLimiter:
+    enabled: true
+    apiMaxRequests: 100
+    apiWindowSeconds: 60
+    wsMaxRequests: 20
+    wsWindowSeconds: 60
+
+  # -- Metrics settings
+  metrics:
+    enabled: true
+    driver: prometheus
+    prefix: "sockudo_"
+
+  # -- SSL/TLS settings (typically terminated at ingress)
+  ssl:
+    enabled: false
+
+  # -- Delta compression settings
+  deltaCompression:
+    enabled: true
+    algorithm: Fossil
+    fullMessageInterval: 10
+    minMessageSize: 100
+    maxStateAgeSecs: 300
+
+  # -- CORS settings
+  cors:
+    credentials: true
+    origin:
+      - "*"
+    methods:
+      - GET
+      - POST
+      - OPTIONS
+    allowedHeaders:
+      - Authorization
+      - Content-Type
+      - X-Requested-With
+      - Accept
+
+# -- Full Sockudo config content (JSON). If set, mounted as /app/config/config.json.
+# Takes precedence over individual config.* values above and is the preferred
+# chart entrypoint for advanced app-manager or inline app policy configuration.
+# configJson: |
+#   { "debug": false, "port": 6001, ... }
+
+# -- Default app bootstrap configuration.
+# This only covers a small env-based subset of app policy. For production
+# multi-app setups or advanced per-app policy, use configJson or an external
+# app manager backend instead of extending this block.
+defaultApp:
+  #* registfy
+  enabled: true
+  id: <path:/production/data/application/sockudo/defaultapp#PUSHER_APP_ID>
+  key: <path:/production/data/application/sockudo/defaultapp#PUSHER_KEY>
+  secret: <path:/production/data/application/sockudo/defaultapp#PUSHER_SECRET>
+  # -- Use an existing secret for the default app secret
+  # Must contain key: default-app-secret
+  # Can optionally contain keys: default-app-id, default-app-key
+  #* registfy
+  existingSecret: ""
+  maxConnections: 1000
+  enableClientMessages: true
+  enableUserAuthentication: false
+  maxClientEventsPerSecond: 100
+
+# -- Extra environment variables (name/value pairs)
+extraEnv: []
+  # - name: REDIS_URL
+  #   value: "redis://redis:6379"
+
+# -- Extra environment variables from secrets/configmaps
+extraEnvFrom: []
+  # - secretRef:
+  #     name: sockudo-redis-credentials
+
+# -- Redis configuration (when using redis-based drivers)
+redis:
+  # -- Redis host
+  #* registfy
+  host: "redis-master.ivoiceup-app.svc.cluster.local"
+  # -- Redis port
+  port: 6379
+  # -- Redis database number
+  db: 0
+  # -- Redis key prefix
+  keyPrefix: "sockudo:"
+  # -- Redis username (optional)
+  username: ""
+  # -- Redis password (optional)
+  password: ""
+  # -- Use an existing secret for Redis credentials
+  # Must contain keys: redis-password (and optionally redis-username)
+  #* registfy
+  existingSecret: ""
+
+# -- Redis Cluster configuration
+redisCluster:
+  # -- Comma-separated Redis cluster node URLs
+  nodes: ""
+  # -- Redis Cluster username (optional)
+  username: ""
+  # -- Redis Cluster password (optional)
+  password: ""
+  # -- Use TLS for Redis Cluster
+  useTls: false
+  # -- Use an existing secret for Redis Cluster credentials
+  existingSecret: ""
+
+# -- Database configuration (MySQL/PostgreSQL for app manager)
+database:
+  mysql:
+    host: ""
+    port: 3306
+    username: ""
+    password: ""
+    database: "sockudo"
+    tableName: "apps"
+  postgres:
+    #* registfy
+    host: "ivoiceup-prd-sockudo-cluster-01.cluster-cduc0ewu8qwz.eu-central-1.rds.amazonaws.com"
+    port: 5432
+    #* registfy
+    username: "sockudo"
+    password: <path:production/data/application/sockudo/dbpassword#password>
+    database: "sockudo"
+  # -- Use an existing secret for database credentials
+  # Must contain keys matching: database-username, database-password
+  #* registfy
+  existingSecret: ""
+
+# -- NATS configuration (when using nats adapter)
+nats:
+  servers: ""
+  username: ""
+  password: ""
+  token: ""
+  connectionTimeoutMs: 5000
+  requestTimeoutMs: 5000
+  existingSecret: ""
+
+# -- Cluster (multi-node) configuration
+cluster:
+  enabled: false
+  port: 6002
+  helloInterval: 5000
+  checkInterval: 10000
+  nodeTimeout: 30000
+  masterTimeout: 60000
+
+service:
+  type: ClusterIP
+  port: 6001
+  # -- Node port (only used when type is NodePort)
+  nodePort: ""
+  annotations: {}
+
+metricsService:
+  # -- Enable a separate service for metrics scraping
+  enabled: true
+  port: 9601
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    # nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+  hosts:
+    - host: sockudo.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: sockudo-tls
+  #    hosts:
+  #      - sockudo.local
+
+# -- WebSocket-specific ingress (if you need separate ingress for WS)
+# Useful when your ingress controller needs different annotations for WebSocket
+wsIngress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+resources:
+  limits:
+    #* registfy
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  #* registfy
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+
+# -- Pod Disruption Budget
+pdb:
+  #* registfy
+  enabled: true
+  minAvailable: 1
+  # maxUnavailable: 1
+
+livenessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# -- Topology spread constraints for pod scheduling
+#* registfy
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels: {}
+
+# -- Priority class name for pods
+priorityClassName: ""
+
+# -- Termination grace period (should be >= config.shutdownGracePeriod)
+#* registfy
+terminationGracePeriodSeconds: 60
+
+# -- Extra volumes to add to the pod
+extraVolumes: []
+# -- Extra volume mounts to add to the container
+extraVolumeMounts: []
+
+# -- Init containers
+initContainers: []
+
+# -- Sidecar containers
+extraContainers: []
+
+# -- ServiceMonitor for Prometheus Operator
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}
+  honorLabels: false
+  metricRelabelings: []
+  relabelings: []
+
+# -- Network policy
+networkPolicy:
+  enabled: false
+  ingress: []
+  egress: []
