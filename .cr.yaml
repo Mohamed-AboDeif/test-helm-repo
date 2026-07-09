@@ -2,10 +2,10 @@
 # https://github.com/helm/chart-releaser
 
 # GitHub owner (org or user)
-owner: iVoiceUp
+owner: Mohamed-AboDeif
 
 # GitHub repository name
-git-repo: ivoiceup-app-chart
+git-repo: test-helm-repo
 
 # Branch to push the index.yaml to (GitHub Pages source)
 git-base-url: https://api.github.com/
